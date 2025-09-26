@@ -1,0 +1,5 @@
+{
+  "name": "Interactive 3D Solar System - Museum Exhibit",
+  "description": "An educational and interactive 3D model of the solar system, designed for a science museum exhibit. Users can click on planets to learn interesting facts and control the camera view.",
+  "requestFramePermissions": []
+}

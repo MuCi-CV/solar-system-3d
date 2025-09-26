@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive 3D Solar System Museum Exhibit</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+          Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        background-color: #000;
+        color: #fff;
+        overflow: hidden;
+      }
+
+      #root {
+        width: 100vw;
+        height: 100vh;
+      }
+      
+      .loading-indicator {
+        color: #fff;
+        font-size: 1.5rem;
+        text-shadow: 0 0 10px #61dafb;
+        animation: pulse 2.5s infinite ease-in-out;
+        white-space: nowrap;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 0.6;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.02);
+        }
+        100% {
+          opacity: 0.6;
+          transform: scale(1);
+        }
+      }
+
+      /* Welcome Screen */
+      .welcome-screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        z-index: 100;
+        opacity: 0;
+        animation: fadeIn 1s 0.5s forwards;
+      }
+      
+      @keyframes fadeIn {
+        to { opacity: 1; }
+      }
+
+      .welcome-content {
+        max-width: 500px;
+        padding: 40px;
+      }
+      
+      .welcome-title {
+        font-size: 3rem;
+        color: #fff;
+        text-shadow: 0 0 10px #61dafb;
+        margin: 0;
+      }
+
+      .welcome-subtitle {
+        font-size: 1.2rem;
+        color: #ccc;
+        margin: 10px 0 40px;
+      }
+      
+      .welcome-settings {
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 25px;
+        margin-bottom: 40px;
+      }
+
+      .settings-toggle-button {
+        margin-top: 0;
+        color: #61dafb;
+        font-size: 1.5rem;
+        margin-bottom: 0;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: color 0.3s ease;
+        user-select: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .settings-toggle-button:hover,
+      .settings-toggle-button:focus {
+        color: #fff;
+        outline: none;
+      }
+
+      .settings-toggle-button span {
+        font-size: 1.8rem;
+        line-height: 1;
+      }
+
+      .audio-settings-collapsible {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, margin-top 0.4s ease-in-out;
+        opacity: 0;
+        margin-top: 0;
+      }
+
+      .audio-settings-collapsible.visible {
+        max-height: 220px;
+        opacity: 1;
+        margin-top: 25px;
+      }
+
+      .start-button {
+        background: #61dafb;
+        color: #000;
+        border: none;
+        padding: 15px 40px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        text-transform: uppercase;
+      }
+
+      .start-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px #61dafb;
+      }
+
+      .info-panel {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 300px;
+        max-height: calc(100vh - 40px);
+        background: rgba(0, 0, 0, 0.75);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 20px;
+        box-sizing: border-box;
+        color: #fff;
+        overflow-y: auto;
+        z-index: 10;
+        opacity: 0;
+        transform: translateX(-100%);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+        backdrop-filter: blur(10px);
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .info-panel.visible {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      
+      .info-panel h2 {
+        margin-top: 0;
+        color: #61dafb;
+        font-size: 1.8rem;
+      }
+
+      .info-panel p {
+        line-height: 1.6;
+        font-size: 0.95rem;
+      }
+      
+      .info-panel ul {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0;
+      }
+      
+      .info-panel li {
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+      }
+      
+      .info-panel li strong {
+        color: #ccc;
+        display: block;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        margin-bottom: 2px;
+      }
+      
+      .close-button {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 1.5rem;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+      }
+      
+      .close-button:hover {
+        opacity: 1;
+      }
+
+      .nav-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: auto; /* Pushes buttons to the bottom */
+        padding-top: 20px;
+      }
+
+      .nav-button {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-size: 0.9rem;
+      }
+
+      .nav-button:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .nav-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .settings-button {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.75);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        font-size: 1.5rem;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 20;
+        transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .settings-button:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: rotate(90deg);
+        box-shadow: 0 0 15px #61dafb;
+      }
+      
+      .settings-panel {
+        position: absolute;
+        top: 80px;
+        right: 20px;
+        width: 300px;
+        background: rgba(0, 0, 0, 0.75);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 20px;
+        box-sizing: border-box;
+        color: #fff;
+        z-index: 10;
+        opacity: 0;
+        transform: translateX(calc(100% + 40px));
+        transition: opacity 0.5s ease, transform 0.5s ease;
+        backdrop-filter: blur(10px);
+      }
+
+      .settings-panel.visible {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      
+      .settings-panel h2 {
+        margin-top: 0;
+        color: #61dafb;
+      }
+      
+      .settings-panel h3 {
+        border-bottom: 1px solid #444;
+        padding-bottom: 8px;
+        margin-bottom: 15px;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .settings-control {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      
+      .settings-control:last-child {
+        margin-bottom: 0;
+      }
+
+      .settings-control label {
+        font-size: 0.95rem;
+      }
+
+      /* Toggle Switch */
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 28px;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #333;
+        transition: .4s;
+        border-radius: 28px;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background-color: #61dafb;
+      }
+
+      input:focus + .slider {
+        box-shadow: 0 0 1px #61dafb;
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(22px);
+      }
+
+      /* Volume Slider */
+      .volume-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 120px;
+        height: 8px;
+        background: #555;
+        outline: none;
+        opacity: 0.7;
+        transition: opacity .2s;
+        border-radius: 4px;
+      }
+
+      .volume-slider:hover {
+        opacity: 1;
+      }
+
+      .volume-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #61dafb;
+        cursor: pointer;
+        border-radius: 50%;
+      }
+
+      .volume-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background: #61dafb;
+        cursor: pointer;
+        border-radius: 50%;
+      }
+
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.1.1/client",
+    "@react-three/fiber": "https://aistudiocdn.com/@react-three/fiber@^9.3.0",
+    "@react-three/drei": "https://aistudiocdn.com/@react-three/drei@^10.7.6",
+    "three": "https://aistudiocdn.com/three@^0.180.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/"
+  }
+}
+</script>
+  <link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
