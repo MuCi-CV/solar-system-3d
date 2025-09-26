@@ -1,5 +1,5 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://cdn.jsdelivr.net/gh/MuCi-CV/deep-space-sound@main/public/banner.png" />
+<img width="1200" height="475" alt="GHBanner" src="https://cdn.jsdelivr.net/gh/MuCi-CV/solar-system-3d@main/public/banner.png" />
 </div>
 
 # Run and deploy your AI Studio app
